@@ -1,0 +1,32 @@
+.Indicator {
+  width: 10px;
+  height: 10px;
+
+  border: 1px solid #999;
+  display: inline-block;
+
+  border-radius: 100%;
+  background: #666;
+}
+
+.--is-busy {
+  background: orange;
+}
+
+.--is-complete {
+  background: green;
+}
+
+.--is-error {
+  background: red;
+}
+
+.Indicators__list {
+  list-style: none;
+  
+}
+
+.Indicators__list li {
+  display: inline-block;
+  padding: 0.25em 1em;
+}

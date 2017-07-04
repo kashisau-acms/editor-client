@@ -1,0 +1,11 @@
+.DraftEditor-root {
+    width: 900px;
+    max-width: 100%;
+
+    height: calc(100vh - 100px - 80px);
+
+    background: #d3d3d3;
+
+    padding: 20px;
+    margin: 20px auto;
+}
