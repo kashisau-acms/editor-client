@@ -1,6 +1,7 @@
 import React, { Component } from 'react';
 import Indicator from './Indicator/Indicator';
 import AcmsEditor from './Editor/AcmsEditor';
+import DocumentList from './DocumentList/DocumentList';
 import io from 'socket.io-client';
 import './App.css';
 
@@ -21,7 +22,9 @@ class App extends Component {
       syncing: STATUSES["idle"],
       server: STATUSES["idle"]
     };
+
     this.changeServerStatus = this.changeServerStatus.bind(this);
+    this.changeEditorStatus = this.changeEditorStatus.bind(this);
 
     this.socket = io(SEVER_URL);
   }
@@ -32,11 +35,27 @@ class App extends Component {
     this.socket.on('disconnect', () => this.changeServerStatus(STATUSES["error"]));
   }
 
+  /**
+   * Updates the status of the indicator for the server communication.
+   * @param {Number} status
+   */
   changeServerStatus(status) {
     if (this.state.server === status) return;
     this.setState(
       (prevState, props) => ({
         server: status
+      })
+    );
+  }
+
+  /**
+   * 
+   * @param {Number} status 
+   */
+  changeEditorStatus(status) {
+    this.setState(
+      (prevState, props) => ({
+        editing: status
       })
     );
   }
@@ -54,7 +73,9 @@ class App extends Component {
             </ul>
           </div>
         </div>
-        <AcmsEditor />
+        <DocumentList />
+        <AcmsEditor
+          onChange={this.changeEditorStatus} />
       </div>
     );
   }
