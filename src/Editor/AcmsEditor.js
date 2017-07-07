@@ -1,7 +1,10 @@
 import React, { Component } from 'react';
 import {Editor, EditorState, RichUtils} from 'draft-js';
-import './AcmsEditor.css';
+import { BrowserRouter } from 'react-router-dom';
+import { StaticRouter } from 'react-router-dom';
 
+import './AcmsEditor.css';
+import { v1 as uuid } from 'uuid';
 
 const COMMIT_TIMER = 1000;
 
@@ -16,9 +19,23 @@ class AcmsEditor extends Component {
     this.toggleInline = this.toggleInline.bind(this);
     this.editorCommitState = this.editorCommitState.bind(this);
 
+    this.componentWillUpdate = this.componentWillUpdate.bind(this);
+    this.createNewDocument = this.createNewDocument.bind(this);
+
     this.editor = undefined;
 
     this.draftSaveTimer = undefined;
+  }
+
+  /**
+   * Receives the document state (if available).
+   * @param {*} props 
+   */
+  componentWillUpdate(props) {
+    const documentId = props.documentId;
+    console.log("Props received: ", props);
+    if (typeof this.state.documentId !== "undefined")
+      if (this.state.documentId === documentId) return;
   }
 
   /**
@@ -48,21 +65,47 @@ class AcmsEditor extends Component {
     this.setState({editorState: newState});
   }
 
+  /**
+   * Stores the EditorState against the documentId in the data store.
+   * @param {EditorState} editorState 
+   */
   editorCommitState(editorState) {
     this.props.onChange(3);
-    console.log("Committing state.", this.state.editorState);
+    const documentId = this.state.documentId;
+    if ( ! documentId) {
+      if (this.props.isNew) this.createNewDocument();
+    }
+    localStorage.setItem(documentId, JSON.stringify(editorState));
+  }
+
+  /**
+   * Stores a new document and updates the route URL so that we're editing the
+   * correct document.
+   */
+  createNewDocument() {
+    const documentId = uuid();
+    this.setState((prevState, props) => ({ documentId: documentId }));
   }
 
   render() {
     return (
-      <div>
-        <button onClick={this.toggleInline} data-style-toggle="BOLD" ref="bold">Bold</button>
-        <button onClick={this.toggleInline} data-style-toggle="ITALIC" ref="italics">Italics</button>
-        <button onClick={this.toggleInline} data-style-toggle="UNDERLINE" ref="underline">Underline</button>
+      <div className="AcmsEditor">
+        <label>
+          <span>Heading</span>
+          <input className="Heading" />
+        </label>
+        <label onClick={() => this.editor.focus()}><span>Document</span></label>
+        <nav className="Toolbar">
+          <button onClick={this.toggleInline} data-style-toggle="BOLD" ref="bold">Bold</button>
+          <button onClick={this.toggleInline} data-style-toggle="ITALIC" ref="italics">Italics</button>
+          <button onClick={this.toggleInline} data-style-toggle="UNDERLINE" ref="underline">Underline</button>
+        </nav>
+        <div className="DocumentVersion">{this.props.documentVersion || "New document"}</div>
         <Editor 
           className="Editor"
           editorState={this.state.editorState}
           onChange={this.onChange}
+          spellCheck={true}
           ref={editor => this.editor = editor}
         />
       </div>

@@ -2,6 +2,11 @@ import React, { Component } from 'react';
 import Indicator from './Indicator/Indicator';
 import AcmsEditor from './Editor/AcmsEditor';
 import DocumentList from './DocumentList/DocumentList';
+import {
+  BrowserRouter as Router,
+  Route,
+  Link
+} from 'react-router-dom';
 import io from 'socket.io-client';
 import './App.css';
 
@@ -25,6 +30,12 @@ class App extends Component {
 
     this.changeServerStatus = this.changeServerStatus.bind(this);
     this.changeEditorStatus = this.changeEditorStatus.bind(this);
+
+    this.documentList = () => <DocumentList />
+    this.editor = (routeProps) => <AcmsEditor 
+      onChange={this.changeEditorStatus}
+      isNew={routeProps.match.path === "/new"}
+      documentId={routeProps.match.params.documentId} />
 
     this.socket = io(SEVER_URL);
   }
@@ -61,22 +72,25 @@ class App extends Component {
   }
 
   render() {
-    return (
-      <div className="App">
-        <div className="App-header">
-          <h2>Markdown Editor</h2>
-          <div className="Indicators">
-            <ul className="Indicators__list">
-              <li>Editing: <Indicator indicatorStatus={this.state.editing} /></li>
-              <li>Syncing: <Indicator indicatorStatus={this.state.syncing} /></li>
-              <li>Server: <Indicator indicatorStatus={this.state.server} /></li>
-            </ul>
+      return (
+      <Router basename="/editor">
+        <div className="App">
+          <div className="App-header">
+            <h2>Markdown Editor</h2>
+            <div className="Indicators">
+              <ul className="Indicators__list">
+                <li>Editing: <Indicator indicatorStatus={this.state.editing} /></li>
+                <li>Syncing: <Indicator indicatorStatus={this.state.syncing} /></li>
+                <li>Server: <Indicator indicatorStatus={this.state.server} /></li>
+              </ul>
+            </div>
           </div>
+          
+          <Route exact path="/" component={this.documentList}/>
+          <Route exact path="/new" component={this.editor}/>
+          <Route exact path="/edit/:documentId" component={this.editor}/>
         </div>
-        <DocumentList />
-        <AcmsEditor
-          onChange={this.changeEditorStatus} />
-      </div>
+        </Router>
     );
   }
 }

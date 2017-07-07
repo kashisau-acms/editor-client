@@ -5,13 +5,15 @@
   "dependencies": {
     "classnames": "^2.2.5",
     "draft-js": "^0.10.1",
+    "history": "^4.6.3",
     "pouchdb": "^6.2.0",
     "react": "^15.6.1",
     "react-dom": "^15.6.1",
     "react-router": "^4.1.1",
     "react-router-dom": "^4.1.1",
     "react-scripts": "1.0.10",
-    "socket.io": "^2.0.3"
+    "socket.io": "^2.0.3",
+    "uuid": "^3.1.0"
   },
   "scripts": {
     "start": "react-scripts start",

@@ -1,17 +1,40 @@
-.DraftEditor-root {
+.AcmsEditor {
     width: 900px;
     max-width: 100%;
 
     height: calc(100vh - 100px - 80px);
 
-    background: #ededed;
-
     padding: 3em;
     margin: 20px auto;
+}
 
+.AcmsEditor .Heading,
+.DraftEditor-root
+{
+    background: #fcfcfc;
     font-family: 'PT Serif', serif;
     font-size: 1.5em;
     letter-spacing: -0.01em;
     line-height: 1.65;
     color: #242424;
+
+    display: block;
+    width: auto;
+
+}
+
+.AcmsEditor .Heading {
+    border: 0 none;
+    padding: 0.5em 1em;
+    width: calc(100% - 2em);
+}
+
+.DraftEditor-root {
+    height: 100%;
+    padding: 1em;
+}
+
+.DocumentVersion {
+    float: right;
+    clear: both;
 }

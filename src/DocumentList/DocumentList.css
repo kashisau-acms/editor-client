@@ -1,3 +1,15 @@
 .DocumentList {
-    
+    max-width: 900px;
+    margin: 60px auto;
+}
+
+.DocumentList .ArticleTeaser {
+    border: 1px solid indianred;
+    margin: 16px 0;
+
+    padding: 16px;
+}
+
+.DocumentList a {
+    text-decoration: none;
 }
