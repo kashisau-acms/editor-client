@@ -1,7 +1,8 @@
 import React, { Component } from 'react';
-import {Editor, EditorState, RichUtils} from 'draft-js';
+import {Editor, EditorState, RichUtils, convertToRaw, convertFromRaw } from 'draft-js';
 import { BrowserRouter } from 'react-router-dom';
 import { StaticRouter } from 'react-router-dom';
+import { createBrowserHistory } from 'history';
 
 import './AcmsEditor.css';
 import { v1 as uuid } from 'uuid';
@@ -17,10 +18,12 @@ class AcmsEditor extends Component {
     this.onChange = (editorState) => { this.setState({editorState}); this.editorStateChange(editorState) }
 
     this.toggleInline = this.toggleInline.bind(this);
-    this.editorCommitState = this.editorCommitState.bind(this);
-
-    this.componentWillUpdate = this.componentWillUpdate.bind(this);
+    this.editorStateChange = this.editorStateChange.bind(this);
+    this.saveDocument = this.saveDocument.bind(this);
+    this.getDocumentObject = this.getDocumentObject.bind(this);
+    this.loadDocument = this.loadDocument.bind(this);
     this.createNewDocument = this.createNewDocument.bind(this);
+
 
     this.editor = undefined;
 
@@ -33,9 +36,11 @@ class AcmsEditor extends Component {
    */
   componentWillUpdate(props) {
     const documentId = props.documentId;
-    console.log("Props received: ", props);
-    if (typeof this.state.documentId !== "undefined")
-      if (this.state.documentId === documentId) return;
+
+    if ( ! documentId) return;
+    if (documentId === this.state.documentId) return;
+
+    this.setState({documentId: documentId}, () => this.loadDocument());
   }
 
   /**
@@ -61,7 +66,7 @@ class AcmsEditor extends Component {
       clearTimeout(this.draftSaveTimer);
     
     this.props.onChange(1);
-    this.draftSaveTimer = setTimeout(this.editorCommitState, COMMIT_TIMER);
+    this.draftSaveTimer = setTimeout(this.saveDocument, COMMIT_TIMER);
     this.setState({editorState: newState});
   }
 
@@ -69,13 +74,47 @@ class AcmsEditor extends Component {
    * Stores the EditorState against the documentId in the data store.
    * @param {EditorState} editorState 
    */
-  editorCommitState(editorState) {
+  saveDocument(editorState) {
     this.props.onChange(3);
     const documentId = this.state.documentId;
     if ( ! documentId) {
       if (this.props.isNew) this.createNewDocument();
     }
-    localStorage.setItem(documentId, JSON.stringify(editorState));
+    localStorage.setItem(documentId, JSON.stringify(this.getDocumentObject()));
+  }
+
+  /**
+   * Gathers the document object.
+   */
+  getDocumentObject() {
+    const contentState = this.state.editorState.getCurrentContent(),
+      contentStateRaw = convertToRaw(contentState);
+
+    const doc = {
+      id: this.state.documentId,
+      headline : this.state.headline,
+      contentState: contentStateRaw,
+      timestamp: Date.now(),
+      author: 0
+    }
+    return doc;
+  }
+
+  /**
+   * Loads the current document from the localStorage object.
+   * @param {string} documentId Loads the Editor's state from the localstorage
+   *                            object for that document.
+   */
+  loadDocument(documentId) {
+    if ( ! documentId)
+      documentId = this.state.documentId;
+    const documentObjectString = localStorage.getItem(documentId);
+    if ( ! documentObjectString) createBrowserHistory.redirect('/editor/new');
+    let documentObject = JSON.parse(documentObjectString),
+      contentState = convertFromRaw(documentObject.contentState);
+
+    documentObject.editorState = EditorState.createWithContent(contentState);
+    this.setState(documentObject);
   }
 
   /**
@@ -84,7 +123,8 @@ class AcmsEditor extends Component {
    */
   createNewDocument() {
     const documentId = uuid();
-    this.setState((prevState, props) => ({ documentId: documentId }));
+    this.setState({documentId: documentId});
+    createBrowserHistory().push(`/editor/edit/${documentId}`);
   }
 
   render() {
@@ -92,7 +132,7 @@ class AcmsEditor extends Component {
       <div className="AcmsEditor">
         <label>
           <span>Heading</span>
-          <input className="Heading" />
+          <input className="Heading" value={this.state.headline} onChange={(changeEvent) => this.setState({headline: changeEvent.currentTarget.value})} />
         </label>
         <label onClick={() => this.editor.focus()}><span>Document</span></label>
         <nav className="Toolbar">
