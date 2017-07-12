@@ -3,6 +3,8 @@ import ArticleTeaser from './ArticleTeaser';
 import { Link } from 'react-router-dom';
 import './DocumentList.css';
 
+const ACMS_DOC_LIST_KEY = 'acms.editor.documentList';
+
 class DocumentList extends Component {
 
     constructor(props) {
@@ -18,7 +20,7 @@ class DocumentList extends Component {
      * Gathers the documents from the localstorage
      */
     retrieveDocuments() {
-        const storedDocs = localStorage.getItem('acms.editor.documentList');
+        const storedDocs = localStorage.getItem(ACMS_DOC_LIST_KEY);
         if ( ! storedDocs) return;
     }
 

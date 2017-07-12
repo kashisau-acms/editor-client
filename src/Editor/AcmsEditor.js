@@ -8,6 +8,7 @@ import './AcmsEditor.css';
 import { v1 as uuid } from 'uuid';
 
 const COMMIT_TIMER = 1000;
+const ACMS_DOC_LIST_KEY = 'acms.editor.documentList';
 
 class AcmsEditor extends Component {
 
@@ -74,11 +75,11 @@ class AcmsEditor extends Component {
    * Stores the EditorState against the documentId in the data store.
    * @param {EditorState} editorState 
    */
-  saveDocument(editorState) {
+  async saveDocument(editorState) {
     this.props.onChange(3);
     const documentId = this.state.documentId;
     if ( ! documentId) {
-      if (this.props.isNew) this.createNewDocument();
+      if (this.props.isNew) await this.createNewDocument();
     }
     localStorage.setItem(documentId, JSON.stringify(this.getDocumentObject()));
   }
@@ -121,9 +122,19 @@ class AcmsEditor extends Component {
    * Stores a new document and updates the route URL so that we're editing the
    * correct document.
    */
-  createNewDocument() {
+  async createNewDocument() {
     const documentId = uuid();
-    this.setState({documentId: documentId});
+    await this.setState({documentId: documentId});
+    let documentList = localStorage.getItem(ACMS_DOC_LIST_KEY);
+    
+    if (typeof documentList === "string") 
+      documentList = JSON.parse(documentList);
+    else
+      documentList = [];
+    
+    documentList.push(documentId);
+    localStorage.setItem(ACMS_DOC_LIST_KEY, JSON.stringify(documentList));
+
     createBrowserHistory().push(`/editor/edit/${documentId}`);
   }
 
