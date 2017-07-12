@@ -4,8 +4,7 @@ import AcmsEditor from './Editor/AcmsEditor';
 import DocumentList from './DocumentList/DocumentList';
 import {
   BrowserRouter as Router,
-  Route,
-  Link
+  Route
 } from 'react-router-dom';
 import io from 'socket.io-client';
 import './App.css';

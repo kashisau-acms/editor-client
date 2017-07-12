@@ -2,11 +2,11 @@
     "env": {
         "browser": true,
         "commonjs": true,
-        "es6": true,
         "node": true
     },
     "parserOptions": {
         "ecmaFeatures": {
+            "ecmaVersion": 7,
             "jsx": true
         },
         "sourceType": "module"
