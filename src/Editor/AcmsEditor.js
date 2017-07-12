@@ -1,15 +1,13 @@
 import React, { Component } from 'react';
 import {Editor, EditorState, RichUtils, convertToRaw, convertFromRaw } from 'draft-js';
 import { createBrowserHistory } from 'history';
-//import DataStore from 'worker!../DataStore/DataStore.js';
-const DataStore = require("worker!../DataStore/DataStore.js");
+import DataStore from '../DataStore/DataStore.js';
 
 import './AcmsEditor.css';
 import { v1 as uuid } from 'uuid';
 
 const COMMIT_TIMER = 1000;
 const ACMS_DOC_LIST_KEY = 'acms.editor.documentList';
-const dsSource = new Blob([DataStore], { type: "text/javascript" });
 
 class AcmsEditor extends Component {
 
@@ -29,11 +27,11 @@ class AcmsEditor extends Component {
     this.editor = undefined;
     this.draftSaveTimer = undefined;
 
-    this.dataStore = new Worker(window.URL.createObjectURL(dsSource));
-    this.dataStore.onmessage = (e) => {
-      console.log("Received message: " + e.data);
-    }
-    this.dataStore.postMessage("Hello!");
+    // this.dataStore = new Worker(window.URL.createObjectURL(dsSource));
+    // this.dataStore.onmessage = (e) => {
+    //   console.log("Received message: " + e.data);
+    // }
+    // this.dataStore.postMessage("Hello!");
 
     if (props.isNew) {
       this.state = {editorState: EditorState.createEmpty()};
@@ -97,7 +95,11 @@ class AcmsEditor extends Component {
       if (this.props.isNew) await this.createNewDocument();
     }
     localStorage.setItem(documentId, JSON.stringify(this.getDocumentObject()));
-    this.dataStore.postMessage("Hello");
+
+    DataStore.saveDocument({
+      headline: this.state.headline,
+      editorState: this.state.editorState
+    });
   }
 
   /**

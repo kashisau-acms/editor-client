@@ -1,4 +1,4 @@
-import { EditorState, ContentState, convertToRaw } from 'draft-js';
+import { EditorState, ContentState, convertToRaw, convertFromRaw } from 'draft-js';
 import { v5 as uuid } from 'uuid';
 /**
  * @typedef {Object} AcmsDocument A document object that is transportable across the CMS.
@@ -37,7 +37,7 @@ export default class DataStore {
      * @return {AcmsDocument}   Returns a furnished document for use by the
      *                          AcmsEditor.
      */
-    async saveDocument(protoDoc) {
+    static async saveDocument(protoDoc) {
         return new Promise(
             (resolve, reject) => {
                 const contentState = protoDoc.editorState.getCurrentContent(),
@@ -83,8 +83,24 @@ export default class DataStore {
      * @return {AcmsDocument}   Returns a document that may be used to furnish
      *                          the AcmsEditor component.
      */
-    async loadDocument(documentId) {
+    static async loadDocument(documentId) {
+        return new Promise(
+            (resolve, reject) => {
+                const documentStorageKey = `${ACMS_DOCUMENT_PREFIX}.${documentId}`,
+                    documentStr = localStorage.getItem(documentStorageKey);
+                
+                if ( ! documentStr) reject(new Error("Document not found."));
 
+                const document = JSON.parse(documentStr),
+                    contentState = convertFromRaw(document.content),
+                    editorState = EditorState.createWithContent(contentState);
+                
+                editorState.undoStack = document.undoStack;
+                editorState.redoStack = document.redoStack;
+
+                resolve(document);
+            }
+        );
     }
 
     onMessage = message => {
