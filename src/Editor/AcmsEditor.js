@@ -14,8 +14,7 @@ class AcmsEditor extends Component {
 
   constructor(props) {
     super(props);
-    this.state = {editorState: EditorState.createEmpty()};    
-
+    
     this.onChange = (editorState) => { this.setState({editorState}); this.editorStateChange(editorState) }
 
     this.toggleInline = this.toggleInline.bind(this);
@@ -24,24 +23,33 @@ class AcmsEditor extends Component {
     this.getDocumentObject = this.getDocumentObject.bind(this);
     this.loadDocument = this.loadDocument.bind(this);
     this.createNewDocument = this.createNewDocument.bind(this);
-
+    this.componentWillUpdate = this.componentWillUpdate.bind(this);
 
     this.editor = undefined;
-
     this.draftSaveTimer = undefined;
+
+    if (props.isNew) {
+      this.state = {editorState: EditorState.createEmpty()};
+    } else {
+      const document = this.loadDocument(props.documentId)
+      this.state = document;
+    }
+    
   }
 
   /**
    * Receives the document state (if available).
    * @param {*} props 
    */
-  componentWillUpdate(props) {
+  async componentWillUpdate(props) {
     const documentId = props.documentId;
 
     if ( ! documentId) return;
     if (documentId === this.state.documentId) return;
 
-    this.setState({documentId: documentId}, () => this.loadDocument());
+    await this.setState({documentId: documentId});
+    const documentObject = this.loadDocument(documentId);
+    this.setState(documentObject);
   }
 
   /**
@@ -105,17 +113,19 @@ class AcmsEditor extends Component {
    * Loads the current document from the localStorage object.
    * @param {string} documentId Loads the Editor's state from the localstorage
    *                            object for that document.
+   * @return {Document}  Returns the document object.
    */
   loadDocument(documentId) {
     if ( ! documentId)
       documentId = this.state.documentId;
     const documentObjectString = localStorage.getItem(documentId);
     if ( ! documentObjectString) createBrowserHistory.redirect('/editor/new');
+    
     let documentObject = JSON.parse(documentObjectString),
       contentState = convertFromRaw(documentObject.contentState);
 
     documentObject.editorState = EditorState.createWithContent(contentState);
-    this.setState(documentObject);
+    return documentObject;
   }
 
   /**

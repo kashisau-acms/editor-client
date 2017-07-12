@@ -7,7 +7,7 @@ export default class ArticleTeaser extends Component {
         return (
         <Link to={"/edit/" + this.props.id} title="Edit this article">
             <article className="ArticleTeaser">
-                <h1>{this.props.title}</h1>
+                <h1>{this.props.headline}</h1>
                 <time dateTime={this.props.dateTime}>{this.props.timeFriendly}</time>
                 <p>{this.props.teaser}</p>
             </article>

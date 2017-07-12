@@ -14,14 +14,37 @@ class DocumentList extends Component {
         };
 
         this.retrieveDocuments = this.retrieveDocuments.bind(this);
+        this.componentWillMount = this.componentWillMount.bind(this);
+    }
+
+    componentWillMount() {
+        this.retrieveDocuments();
     }
 
     /**
      * Gathers the documents from the localstorage
      */
     retrieveDocuments() {
-        const storedDocs = localStorage.getItem(ACMS_DOC_LIST_KEY);
-        if ( ! storedDocs) return;
+        const documentIdsString = localStorage.getItem(ACMS_DOC_LIST_KEY);
+        if ( ! documentIdsString) return;
+
+        const documentIds = JSON.parse(documentIdsString),
+            articles = documentIds.reduce((articleList, documentId) => {
+                const documentStr = localStorage.getItem(documentId);
+                // Article does not exist, on to the next one.
+                if ( ! documentStr) return articleList;
+                const document = JSON.parse(documentStr),
+                    article = {
+                        id: document.id,
+                        headline: document.headline,
+                        datetime: document.timestamp,
+                        timeFriendly: "Today",
+                        teaser: "Deblocking algorithm goes here."
+                    };
+                articleList.push(article);
+                return articleList;
+            }, []);
+        this.setState({articles: articles});
     }
 
     render() {
