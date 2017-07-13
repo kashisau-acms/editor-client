@@ -75,7 +75,7 @@ class App extends Component {
       <Router basename="/editor">
         <div className="App">
           <div className="App-header">
-            <h2>Markdown Editor</h2>
+            <h2>Greedy editor</h2>
             <div className="Indicators">
               <ul className="Indicators__list">
                 <li>Editing: <Indicator indicatorStatus={this.state.editing} /></li>

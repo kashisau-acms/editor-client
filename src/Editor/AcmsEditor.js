@@ -19,24 +19,18 @@ class AcmsEditor extends Component {
     this.toggleInline = this.toggleInline.bind(this);
     this.editorStateChange = this.editorStateChange.bind(this);
     this.saveDocument = this.saveDocument.bind(this);
-    this.getDocumentObject = this.getDocumentObject.bind(this);
     this.loadDocument = this.loadDocument.bind(this);
-    this.createNewDocument = this.createNewDocument.bind(this);
     this.componentWillUpdate = this.componentWillUpdate.bind(this);
+
+    this.dataStore = new DataStore();
 
     this.editor = undefined;
     this.draftSaveTimer = undefined;
 
-    // this.dataStore = new Worker(window.URL.createObjectURL(dsSource));
-    // this.dataStore.onmessage = (e) => {
-    //   console.log("Received message: " + e.data);
-    // }
-    // this.dataStore.postMessage("Hello!");
-
     if (props.isNew) {
       this.state = {editorState: EditorState.createEmpty()};
     } else {
-      const document = this.loadDocument(props.documentId)
+      const document = this.loadDocument(props.documentId);
       this.state = document;
     }
     
@@ -79,63 +73,57 @@ class AcmsEditor extends Component {
     if (this.draftSaveTimer)
       clearTimeout(this.draftSaveTimer);
     
-    this.props.onChange(1);
+    this.props.onChange(0);
     this.draftSaveTimer = setTimeout(this.saveDocument, COMMIT_TIMER);
     this.setState({editorState: newState});
   }
 
   /**
-   * Stores the EditorState against the documentId in the data store.
-   * @param {EditorState} editorState 
+   * Stores the EditorState against the documentId in the data store. If this is
+   * a new document then the URL is changed to reflect the new document ID.
+   * @param {EditorState} editorState
+   * @return {Promise<AcmsDocument>}  Returns the saved AcmsDocument object.
    */
   async saveDocument(editorState) {
-    this.props.onChange(3);
-    const documentId = this.state.documentId;
-    if ( ! documentId) {
-      if (this.props.isNew) await this.createNewDocument();
-    }
-    localStorage.setItem(documentId, JSON.stringify(this.getDocumentObject()));
-
-    DataStore.saveDocument({
+    let documentId = this.state.documentId;
+    const protoDocument = {
+      id: documentId,
       headline: this.state.headline,
-      editorState: this.state.editorState
-    });
-  }
+      editorState: this.state.editorState,
+      authorId: 0
+    };
 
-  /**
-   * Gathers the document object.
-   */
-  getDocumentObject() {
-    const contentState = this.state.editorState.getCurrentContent(),
-      contentStateRaw = convertToRaw(contentState);
+    this.props.onChange(3);
 
-    const doc = {
-      id: this.state.documentId,
-      headline : this.state.headline,
-      contentState: contentStateRaw,
-      timestamp: Date.now(),
-      author: 0
+    try {
+      const document = await this.dataStore.saveDocument(protoDocument);
+      this.props.onChange(2);
+      
+      // Redirect for new documents.
+      if (document.id !== documentId)
+        createBrowserHistory().push(`/editor/edit/${document.id}`);
+
+      return document;
+    } catch (err) {
+      this.props.onChange(3)
+      throw new Error("There was an error saving the document.", err);
     }
-    return doc;
   }
 
   /**
    * Loads the current document from the localStorage object.
    * @param {string} documentId Loads the Editor's state from the localstorage
    *                            object for that document.
-   * @return {Document}  Returns the document object.
+   * @return {Promise<AcmsDocument>}  Returns the document object.
    */
-  loadDocument(documentId) {
-    if ( ! documentId)
-      documentId = this.state.documentId;
-    const documentObjectString = localStorage.getItem(documentId);
-    if ( ! documentObjectString) createBrowserHistory.redirect('/editor/new');
-    
-    let documentObject = JSON.parse(documentObjectString),
-      contentState = convertFromRaw(documentObject.contentState);
-
-    documentObject.editorState = EditorState.createWithContent(contentState);
-    return documentObject;
+  async loadDocument(documentId) {
+    const dataStore = this.dataStore;
+    try {
+      const document = await dataStore.loadDocument(documentId);
+      return dataStore.loadDcument(documentId);
+    } catch (err) {
+      throw new Error("There was an error retrieving the document.", err);
+    }
   }
 
   /**
